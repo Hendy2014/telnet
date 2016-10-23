@@ -1,4 +1,0 @@
-SUBDIRS = \
-	client\
-	server\
-	$(NULL)
