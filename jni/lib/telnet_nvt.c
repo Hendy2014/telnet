@@ -13,6 +13,8 @@ TELNET_EXPORT
 void 
 telnet_cmd_do_option (telnet_nvt* state, unsigned char option_code)
 {
+	printf("telnet_nvt_set_sock_fd\n");
+
     //a naive implementation now
     unsigned char cmd_buffer[3];
     cmd_buffer[0] = TELNET_IAC;

@@ -13,7 +13,7 @@
 #include <sys/socket.h>
 #include <netdb.h>		//include def for struct addrinfo
 
-#include <telnet.h>
+#include "telnet.h"
 
 #define BUF_SIZE 1024
 
@@ -23,6 +23,7 @@ unsigned char buffer[BUF_SIZE] = {0};
 int
 main (int argc, char** argv)
 {
+	printf ("main ok\n");
     if (argc != 3)
     {
 	fprintf (stderr, "Usage: ./a.out <node> [<service>]\n");
@@ -65,6 +66,7 @@ main (int argc, char** argv)
 	}
 	break;
     }
+	printf("connect ok\n");
     if ((client_sfd == -1)||(conn_retval == -1))
     {
 	fprintf (stderr, "socket and connect all failed\n");
@@ -72,10 +74,12 @@ main (int argc, char** argv)
     }
     freeaddrinfo (res);
     //3. event loop
+    printf("event loop\n");
     int read_size = 0;
     unsigned char tmp_buffer[TELNET_MAX_CMD_LEN];
     int tmp_size;
     telnet_nvt state;
+	
     telnet_nvt_set_sock_fd (&state, client_sfd);
 
     //for write
@@ -92,6 +96,7 @@ main (int argc, char** argv)
 	memset (tmp_buffer, 0, sizeof (tmp_buffer));
 	while ((read_size = read (client_sfd, buffer, sizeof(buffer)))!=-1)
 	{
+		//printf("read buffer=%s\n", buffer);
 	    //5. data processing
 	    telnet_parse_data (&state, 
 			       tmp_buffer, &tmp_size,
@@ -101,11 +106,15 @@ main (int argc, char** argv)
 		break;
 	}
 	//4. write data
-	if ((tmp_size = getline (&lineptr, &n, stdin))!=-1)
+	lineptr = fgetln(stdin, &tmp_size);
+	//printf("input cmd=%.*s\n", tmp_size, lineptr);
+	//if ((tmp_size = getline (&lineptr, &n, stdin))!=-1)
+	if (lineptr != NULL)
 	{
 	    lineptr[tmp_size] = TELNET_NVT_ASCII_CR;
 	    lineptr[tmp_size+1] = TELNET_NVT_ASCII_LF;
 	    lineptr[tmp_size+2] = NULL;
+		//printf("lineptr to send=%.*s\n", tmp_size, lineptr);
 	    write (client_sfd, lineptr, tmp_size+2);
 	}
     }
